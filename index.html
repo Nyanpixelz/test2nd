@@ -1,0 +1,30 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>Swap Landing</title>
+  <script>
+    // URL のクエリパラメータ ?txn=XXXX を unsignedTx に入れる
+    const params     = new URLSearchParams(window.location.search);
+    const unsignedTx = params.get("txn") || "";
+
+    // Phantom モバイル用 Deeplink
+    const mobileLink = `https://phantom.app/ul/v1/transaction?txn=${unsignedTx}`;
+
+    // 簡易的なモバイル判定
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+    if (isMobile) {
+      // モバイルユーザーは直接 Deeplink へ
+      window.location.href = mobileLink;
+    } else {
+      // デスクトップユーザーは署名ページへ
+      window.location.href = `desktop.html?txn=${unsignedTx}`;
+    }
+  </script>
+</head>
+<body>
+  <p>リダイレクト中…</p>
+</body>
+</html>

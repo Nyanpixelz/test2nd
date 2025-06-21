@@ -1,0 +1,62 @@
+
+<!-- desktop.html -->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>Swap Desktop</title>
+</head>
+<body>
+  <h1>Jupiter Swap (Desktop)</h1>
+  <button id="connect">Phantom に接続</button>
+  <button id="sign" disabled>署名＆送信</button>
+
+  <!-- Buffer polyfill -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/buffer/6.0.3/index.min.js"></script>
+  <script>
+    // buffer polyfill をグローバル Buffer にセット
+    if (typeof window.Buffer === 'undefined' && typeof window.buffer !== 'undefined') {
+      window.Buffer = window.buffer.Buffer;
+    }
+  </script>
+  <script>
+    // URL の ?txn=XXXX を rawTxnB64 として取得
+    const params    = new URLSearchParams(window.location.search);
+    const rawTxnB64 = params.get("txn") || "";
+
+    if (!rawTxnB64) {
+      alert("Error: txn クエリパラメータが見つかりません");
+    }
+
+    let provider;
+    async function init() {
+      if (window.solana && window.solana.isPhantom) {
+        provider = window.solana;
+        await provider.connect();
+        document.getElementById("connect").textContent = "Connected: " + provider.publicKey.toString();
+        document.getElementById("sign").disabled = false;
+      } else {
+        alert("Phantom 拡張を検出できませんでした。");
+      }
+    }
+
+    document.getElementById("connect").onclick = init;
+
+    document.getElementById("sign").onclick = async () => {
+      try {
+        const txBuf = Buffer.from(rawTxnB64, "base64");
+        const tx    = provider.sdk.Transaction.from(txBuf);
+
+        // 署名
+        const signedTx = await provider.signTransaction(tx);
+        // 送信
+        const signature = await provider.sendTransaction(signedTx);
+        alert("Transaction Signature:\n" + signature);
+      } catch (err) {
+        console.error(err);
+        alert("Error during signing or sending: " + err);
+      }
+    };
+  </script>
+</body>
+</html>
